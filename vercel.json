@@ -1,6 +1,9 @@
 {
   "rewrites": [
-    { "source": "/api/:path*", "destination": "/api/:path*" },
-    { "source": "/(.*)", "destination": "/index.html" }
+    { "source": "/api/claude-proxy", "destination": "/api/claude-proxy" },
+    { "source": "/api/signals",      "destination": "/api/signals"      },
+    { "source": "/api/news",         "destination": "/api/news"         },
+    { "source": "/api/history",      "destination": "/api/history"      },
+    { "source": "/(.*)",             "destination": "/index.html"       }
   ]
 }
