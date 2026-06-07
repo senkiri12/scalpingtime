@@ -1,8 +1,8 @@
 import { useState, useEffect, useRef, useCallback } from "react";
 
-const GOLD = "#C9A84C";
-const DARK = "#0A0A0F";
-const CARD = "#111118";
+const GOLD = "#6366f1";
+const DARK = "#050510";
+const CARD = "#0d0d1a";
 
 const TFS = ["M1","M5","M15","M30","H1","H4","D1"];
 
@@ -174,8 +174,8 @@ function ScoreBar({ score }) {
 function SectionHeader({ icon, title, sub }) {
   return (
     <div style={{
-      background:`linear-gradient(135deg,${GOLD}22,${GOLD}08)`,
-      border:`1px solid ${GOLD}44`, borderRadius:12, padding:"10px 14px",
+      background:"linear-gradient(135deg,#6366f122,#e11d4808)",
+      border:"1px solid #6366f144", borderRadius:12, padding:"10px 14px",
       marginBottom:14, display:"flex", justifyContent:"space-between", alignItems:"center",
     }}>
       <div style={{ fontSize:12, color:GOLD, fontWeight:700 }}>{icon} {title}</div>
@@ -274,7 +274,7 @@ function PriceLevels({ pair, action, price, strength, lv: lvProp }) {
           { label:"TP1", val:`+${lv.pipsTP1} pip`, color:"#22c55e", bg:"#0d2e1a" },
           { label:"TP2", val:`+${lv.pipsTP2} pip`, color:"#22c55e", bg:"#0a2015" },
           { label:"TP3", val:`+${lv.pipsTP3} pip`, color:"#22c55e", bg:"#071a10" },
-          { label:"RRR", val:`${lv.rrr}:1`,         color:GOLD,      bg:"#1a1500" },
+          { label:"RRR", val:`${lv.rrr}:1`,         color:GOLD,      bg:"#1a1030" },
         ].map(({label,val,color,bg}) => (
           <div key={label} style={{
             background:bg, border:`1px solid ${color}22`, borderRadius:8,
@@ -689,7 +689,7 @@ export default function JagoScalping() {
       <div style={{
         position:"fixed", top:-100, left:"50%", transform:"translateX(-50%)",
         width:400, height:300, borderRadius:"50%",
-        background:`radial-gradient(ellipse,${GOLD}18 0%,transparent 70%)`,
+        background:"radial-gradient(ellipse,#6366f118 0%,transparent 70%)",
         pointerEvents:"none", zIndex:0,
       }} />
 
@@ -697,21 +697,21 @@ export default function JagoScalping() {
 
       {/* Header */}
       <div style={{
-        background:"linear-gradient(135deg,#0e0e16 0%,#1a1520 100%)",
-        borderBottom:`1px solid ${GOLD}33`, padding:"14px 20px 10px",
+        background:"linear-gradient(135deg,#050510 0%,#0f0520 100%)",
+        borderBottom:"1px solid #6366f133", padding:"14px 20px 10px",
         zIndex:10, flexShrink:0,
         display:"flex", alignItems:"center", justifyContent:"space-between",
       }}>
         <div style={{ display:"flex", alignItems:"center", gap:12 }}>
           <div style={{
             width:42, height:42, borderRadius:12,
-            background:`linear-gradient(135deg,${GOLD} 0%,#a07828 100%)`,
+            background:`linear-gradient(135deg,#6366f1 0%,#e11d48 100%)`,
             display:"flex", alignItems:"center", justifyContent:"center",
             fontSize:18, fontWeight:900, color:"#000",
-            boxShadow:`0 4px 16px ${GOLD}44`,
-          }}>JS</div>
+            boxShadow:"0 4px 20px #6366f166, 0 4px 20px #e11d4844",
+          }}>S</div>
           <div>
-            <div style={{ fontSize:17, fontWeight:800, color:GOLD, letterSpacing:1 }}>JAGO SCALPING</div>
+            <div style={{ fontSize:17, fontWeight:800, color:GOLD, letterSpacing:1 }}>SCALPER</div>
             <div style={{ fontSize:11, color:"#888", marginTop:1 }}>by Dark Inc</div>
           </div>
         </div>
@@ -805,7 +805,7 @@ export default function JagoScalping() {
                         { label:"TP1", val:`${lv.pipsTP1} pip`, color:"#22c55e", bg:"#0d2e1a" },
                         { label:"TP2", val:`${lv.pipsTP2} pip`, color:"#16a34a", bg:"#0a2015" },
                         { label:"TP3", val:`${lv.pipsTP3} pip`, color:"#15803d", bg:"#071209" },
-                        { label:"RRR", val:`${lv.rrr}:1`,        color:GOLD,      bg:"#1a1500" },
+                        { label:"RRR", val:`${lv.rrr}:1`,        color:GOLD,      bg:"#1a1030" },
                       ].map(({label,val,color,bg}) => (
                         <div key={label} style={{
                           background:bg, border:`1px solid ${color}33`, borderRadius:8,
@@ -936,7 +936,7 @@ export default function JagoScalping() {
       {/* Bottom Nav */}
       <div style={{
         flexShrink:0,
-        background:"#0d0d14", borderTop:`1px solid ${GOLD}33`,
+        background:"#0d0d14", borderTop:"1px solid #6366f133",
         padding:"8px 0 12px", zIndex:20,
         display:"flex", justifyContent:"space-around",
       }}>
