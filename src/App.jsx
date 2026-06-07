@@ -107,8 +107,8 @@ const NEWS = [
 ];
 
 const TABS = [
-  { id:"signal",   label:"JS Signal",  icon:"📡" },
-  { id:"strength", label:"JS Trend",   icon:"📊" },
+  { id:"signal",   label:"Signal",  icon:"📡" },
+  { id:"strength", label:"Trend",   icon:"📊" },
   { id:"history",  label:"Riwayat",    icon:"🕐" },
   { id:"news",     label:"News",       icon:"📰" },
   { id:"ai",       label:"AI Analisis",icon:"🤖" },
