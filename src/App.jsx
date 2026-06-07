@@ -171,6 +171,56 @@ function ScoreBar({ score }) {
   );
 }
 
+
+// ── Skeleton Loader ───────────────────────────────────────────────────────────
+function Skeleton({ width="100%", height=12, radius=6, style={} }) {
+  return (
+    <div style={{
+      width, height, borderRadius:radius,
+      background:"linear-gradient(90deg,#1a1a2a 25%,#252535 50%,#1a1a2a 75%)",
+      backgroundSize:"200% 100%",
+      animation:"shimmer 1.5s infinite",
+      ...style,
+    }} />
+  );
+}
+
+function SignalSkeleton() {
+  return (
+    <div style={{
+      background:"#0d0d1a", border:"1px solid #1e1e2e", borderRadius:14,
+      padding:"13px 16px", marginBottom:10,
+    }}>
+      <div style={{ display:"flex", justifyContent:"space-between", marginBottom:8 }}>
+        <div style={{ display:"flex", gap:8, alignItems:"center" }}>
+          <Skeleton width={70} height={16} />
+          <Skeleton width={50} height={14} />
+        </div>
+        <Skeleton width={50} height={22} radius={6} />
+      </div>
+      <Skeleton width={120} height={11} style={{ marginBottom:6 }} />
+      <Skeleton width={80} height={16} style={{ marginBottom:10 }} />
+      <Skeleton width="100%" height={3} radius={2} style={{ marginBottom:10 }} />
+      <div style={{ display:"flex", gap:6 }}>
+        {[60,70,70,70,50].map((w,i) => <Skeleton key={i} width={w} height={26} radius={8} />)}
+      </div>
+    </div>
+  );
+}
+
+function LiveDot({ label }) {
+  return (
+    <div style={{ display:"flex", alignItems:"center", gap:5 }}>
+      <div style={{
+        width:6, height:6, borderRadius:"50%", background:"#22c55e",
+        boxShadow:"0 0 6px #22c55e",
+        animation:"pulse 2s infinite",
+      }} />
+      <span style={{ fontSize:10, color:"#22c55e", fontWeight:700 }}>{label}</span>
+    </div>
+  );
+}
+
 function SectionHeader({ icon, title, sub }) {
   return (
     <div style={{
@@ -872,7 +922,9 @@ export default function JagoScalping() {
                 }}>{c}</button>
               ))}
             </div>
-            {filteredSignals.map((s,i) => {
+            {loadingSig ? (
+              [...Array(4)].map((_,i) => <SignalSkeleton key={i} />)
+            ) : filteredSignals.map((s,i) => {
               const lv = calcLevels(s.pair, s.action, prices[s.pair], s.strength);
               const pipColor = s.action==="BUY" ? "#22c55e" : s.action==="SELL" ? "#ef4444" : "#eab308";
               const barColor = s.action==="BUY"
@@ -900,7 +952,7 @@ export default function JagoScalping() {
                   <span style={{ fontSize:11, color:"#666" }}>{s.basis}</span>
                   {prices[s.pair]
                     ? <span style={{ fontSize:13, color:GOLD, fontWeight:800, fontVariantNumeric:"tabular-nums" }}>{prices[s.pair]}</span>
-                    : <span style={{ fontSize:11, color:"#444" }}>Memuat...</span>
+                    : <Skeleton width={80} height={14} />
                   }
                 </div>
 
@@ -912,177 +964,3 @@ export default function JagoScalping() {
                   <span style={{ fontSize:10, color:"#555", minWidth:28 }}>{s.strength}%</span>
                 </div>
 
-                {/* Pips row — selalu tampil dari static data */}
-                <div style={{ display:"flex", gap:6, marginBottom:10, flexWrap:"wrap" }}>
-                  {lv ? (
-                    <>
-                      {[
-                        { label:"SL",  val:`${lv.pipsSL} pip`,  color:"#ef4444", bg:"#2e0d0d" },
-                        { label:"TP1", val:`${lv.pipsTP1} pip`, color:"#22c55e", bg:"#0d2e1a" },
-                        { label:"TP2", val:`${lv.pipsTP2} pip`, color:"#16a34a", bg:"#0a2015" },
-                        { label:"TP3", val:`${lv.pipsTP3} pip`, color:"#15803d", bg:"#071209" },
-                        { label:"RRR", val:`${lv.rrr}:1`,        color:GOLD,      bg:"#1a1030" },
-                      ].map(({label,val,color,bg}) => (
-                        <div key={label} style={{
-                          background:bg, border:`1px solid ${color}33`, borderRadius:8,
-                          padding:"4px 9px", display:"flex", gap:5, alignItems:"center",
-                        }}>
-                          <span style={{ fontSize:9, color:"#666", fontWeight:700 }}>{label}</span>
-                          <span style={{ fontSize:11, color, fontWeight:800, fontVariantNumeric:"tabular-nums" }}>{val}</span>
-                        </div>
-                      ))}
-                    </>
-                  ) : (
-                    <div style={{ background:"#1e1e2e", border:"1px solid #2a2a3a", borderRadius:8, padding:"4px 9px" }}>
-                      <span style={{ fontSize:10, color:"#555" }}>Memuat harga...</span>
-                    </div>
-                  )}
-                </div>
-
-
-
-              </div>
-              );
-            })}
-          </div>
-        )}
-
-        {/* STRENGTH */}
-        {activeTab==="strength" && (
-          <div>
-            <SectionHeader icon="💹" title="KEKUATAN MATA UANG" sub={loadingSig ? "Memuat..." : `TF: ${tf} · Live`} />
-            {CURRENCIES_BASE.map((code,i) => {
-              const score = currencyScores[code] ?? 0;
-              const action = getAction(score);
-              return (
-                <div key={code} style={{
-                  background:CARD, border:"1px solid #1e1e2e", borderRadius:14,
-                  padding:"13px 16px", marginBottom:10,
-                  display:"flex", alignItems:"center", justifyContent:"space-between",
-                  animation:`slideIn 0.3s ease ${i*0.04}s both`,
-                }}>
-                  <div style={{ display:"flex", alignItems:"center", gap:14 }}>
-                    <div style={{
-                      width:44, height:44, borderRadius:12,
-                      background:action==="BUY"?"#0d2e1a":action==="SELL"?"#2e0d0d":"#1a1a0d",
-                      display:"flex", alignItems:"center", justifyContent:"center",
-                      fontSize:13, fontWeight:900,
-                      color:action==="BUY"?"#22c55e":action==="SELL"?"#ef4444":"#eab308",
-                      border:`1px solid ${action==="BUY"?"#22c55e33":action==="SELL"?"#ef444433":"#eab30833"}`,
-                    }}>{code}</div>
-                    <div>
-                      <div style={{ display:"flex", alignItems:"center", gap:6, marginBottom:5 }}>
-                        <span style={{ fontWeight:800, fontSize:14, color:"#fff" }}>Score</span>
-                        <span style={{
-                          fontWeight:700, fontSize:15,
-                          color:score>0?"#22c55e":score<0?"#ef4444":"#eab308",
-                        }}>{score>0?"+":""}{score}</span>
-                      </div>
-                      <ScoreBar score={score} />
-                    </div>
-                  </div>
-                  <ActionBadge action={action} size="md" />
-                </div>
-              );
-            })}
-          </div>
-        )}
-
-        {/* HISTORY */}
-        {activeTab==="history" && (
-          <div>
-            <SectionHeader icon="📋" title="RIWAYAT SINYAL" sub="7 hari terakhir" />
-            {HISTORY.map((h,i) => (
-              <div key={i} style={{
-                background:CARD, border:"1px solid #1e1e2e", borderRadius:14,
-                padding:"14px 16px", marginBottom:10,
-                borderLeft:`3px solid ${h.result==="profit"?"#22c55e":h.result==="loss"?"#ef4444":"#eab308"}`,
-                animation:`slideIn 0.3s ease ${i*0.05}s both`,
-              }}>
-                <div style={{ display:"flex", justifyContent:"space-between", marginBottom:5 }}>
-                  <div style={{ fontSize:11, color:"#555" }}>{h.date}</div>
-                  <span style={{
-                    fontSize:10, fontWeight:700, padding:"2px 8px", borderRadius:6,
-                    background:h.result==="profit"?"#0d2e1a":h.result==="loss"?"#2e0d0d":"#1a1a0d",
-                    color:h.result==="profit"?"#22c55e":h.result==="loss"?"#ef4444":"#eab308",
-                  }}>{h.result==="profit"?"✓ PROFIT":h.result==="loss"?"✗ LOSS":"— NEUTRAL"}</span>
-                </div>
-                <div style={{ fontWeight:700, fontSize:13, color:"#ddd", marginBottom:4 }}>{h.title}</div>
-                <div style={{ fontSize:11, color:"#666" }}>{h.detail}</div>
-              </div>
-            ))}
-          </div>
-        )}
-
-        {/* NEWS */}
-        {activeTab==="news" && (
-          <div>
-            <SectionHeader icon="📰" title="BERITA FOREX" sub={loadingNews ? "Memuat..." : "ForexFactory · Live"} />
-            {(liveNews.length > 0 ? liveNews : NEWS).map((n,i) => (
-              <div key={i} style={{
-                background:CARD, border:"1px solid #1e1e2e", borderRadius:14,
-                padding:"13px 16px", marginBottom:10,
-                display:"flex", gap:12, alignItems:"flex-start",
-                animation:`slideIn 0.3s ease ${i*0.05}s both`,
-              }}>
-                <div style={{ textAlign:"center", minWidth:44 }}>
-                  <div style={{ fontSize:11, fontWeight:700, color:"#6366f1" }}>{n.time || "--:--"}</div>
-                  <div style={{
-                    marginTop:6, fontSize:9, fontWeight:700, padding:"2px 5px", borderRadius:4,
-                    background: (n.impact==="High"||n.impact==="high")?"#2e0d0d": (n.impact==="Medium"||n.impact==="medium")?"#1a1a0d":"#0d1a0d",
-                    color: (n.impact==="High"||n.impact==="high")?"#ef4444": (n.impact==="Medium"||n.impact==="medium")?"#eab308":"#22c55e",
-                  }}>{(n.impact==="High"||n.impact==="high")?"TINGGI":(n.impact==="Medium"||n.impact==="medium")?"SEDANG":"RENDAH"}</div>
-                </div>
-                <div style={{ flex:1 }}>
-                  <div style={{
-                    display:"inline-block", marginBottom:6, padding:"2px 8px",
-                    background:"#6366f122", borderRadius:5, fontSize:10, fontWeight:800, color:"#6366f1",
-                  }}>{n.currency||n.country||"FX"}</div>
-                  <div style={{ fontSize:12, color:"#ccc", lineHeight:1.5 }}>{n.title}</div>
-                  {(n.forecast||n.previous) && (
-                    <div style={{ display:"flex", gap:12, marginTop:4 }}>
-                      {n.forecast && <span style={{ fontSize:10, color:"#666" }}>Forecast: <span style={{ color:"#eab308" }}>{n.forecast}</span></span>}
-                      {n.previous && <span style={{ fontSize:10, color:"#666" }}>Prev: <span style={{ color:"#888" }}>{n.previous}</span></span>}
-                    </div>
-                  )}
-                </div>
-              </div>
-            ))}
-          </div>
-        )}
-
-        {/* AI */}
-        {activeTab==="ai" && <AITab prices={prices} tf={tf} />}
-      </div>
-
-      {/* Bottom Nav */}
-      <div style={{
-        flexShrink:0,
-        background:"#0d0d14", borderTop:"1px solid #6366f133",
-        padding:"8px 0 12px", zIndex:20,
-        display:"flex", justifyContent:"space-around",
-      }}>
-        {TABS.map(t => (
-          <button key={t.id} onClick={() => setActiveTab(t.id)} style={{
-            background:"transparent", border:"none", cursor:"pointer",
-            display:"flex", flexDirection:"column", alignItems:"center", gap:2,
-            color:activeTab===t.id ? GOLD : "#444",
-            transition:"color 0.2s", padding:"4px 6px",
-          }}>
-            <span style={{ fontSize:18 }}>{t.icon}</span>
-            <span style={{ fontSize:8, fontWeight:700 }}>{t.label}</span>
-          </button>
-        ))}
-      </div>
-
-      <style>{`
-        @keyframes slideIn { from{opacity:0;transform:translateY(12px)} to{opacity:1;transform:translateY(0)} }
-        @keyframes toastIn { from{opacity:0;transform:translateX(-50%) translateY(-20px)} to{opacity:1;transform:translateX(-50%) translateY(0)} }
-        *{box-sizing:border-box}
-        ::-webkit-scrollbar{width:4px;height:4px}
-        ::-webkit-scrollbar-thumb{background:#2a2a3a;border-radius:2px}
-        button:active{transform:scale(0.96)}
-      `}</style>
-    </div>
-  );
-}
