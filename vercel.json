@@ -1,9 +1,24 @@
 {
-  "rewrites": [
-    { "source": "/api/claude-proxy", "destination": "/api/claude-proxy" },
-    { "source": "/api/signals",      "destination": "/api/signals"      },
-    { "source": "/api/news",         "destination": "/api/news"         },
-    { "source": "/api/history",      "destination": "/api/history"      },
-    { "source": "/(.*)",             "destination": "/index.html"       }
+  "routes": [
+    {
+      "src": "/api/claude-proxy",
+      "dest": "/api/claude-proxy.js"
+    },
+    {
+      "src": "/api/signals",
+      "dest": "/api/signals.js"
+    },
+    {
+      "src": "/api/news",
+      "dest": "/api/news.js"
+    },
+    {
+      "src": "/api/history",
+      "dest": "/api/history.js"
+    },
+    {
+      "src": "/(.*)",
+      "dest": "/index.html"
+    }
   ]
 }
