@@ -824,15 +824,8 @@ export default function JagoScalping() {
                       ))}
                     </>
                   ) : (
-                    // Fallback pips dari data statik sebelum harga loaded
-                    <div style={{ display:"flex", gap:6 }}>
-                      <div style={{ background:"#2e0d0d", border:"1px solid #ef444433", borderRadius:8, padding:"4px 9px", display:"flex", gap:5 }}>
-                        <span style={{ fontSize:9, color:"#666", fontWeight:700 }}>EST</span>
-                        <span style={{ fontSize:11, color:pipColor, fontWeight:800 }}>{s.pip}</span>
-                      </div>
-                      <div style={{ background:"#111", border:"1px solid #333", borderRadius:8, padding:"4px 9px" }}>
-                      <span style={{ fontSize:10, color:pipColor, fontWeight:800 }}>{s.pip}</span>
-                      </div>
+                    <div style={{ background:"#1e1e2e", border:"1px solid #2a2a3a", borderRadius:8, padding:"4px 9px" }}>
+                      <span style={{ fontSize:10, color:"#555" }}>Memuat harga...</span>
                     </div>
                   )}
                 </div>
