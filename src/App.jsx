@@ -107,8 +107,8 @@ const NEWS = [
 ];
 
 const TABS = [
-  { id:"signal",   label:"Signal",  icon:"📡" },
-  { id:"strength", label:"Trend",   icon:"📊" },
+  { id:"signal",   label:"JS Signal",  icon:"📡" },
+  { id:"strength", label:"JS Trend",   icon:"📊" },
   { id:"history",  label:"Riwayat",    icon:"🕐" },
   { id:"news",     label:"News",       icon:"📰" },
   { id:"ai",       label:"AI Analisis",icon:"🤖" },
@@ -726,6 +726,33 @@ function useLiveNews() {
   return { news, loadingNews };
 }
 
+
+// ── Live History hook (Twelve Data OHLC evaluation) ──────────────────────────
+function useLiveHistory(tf) {
+  const [history, setHistory] = useState([]);
+  const [loadingHist, setLoadingHist] = useState(true);
+
+  const fetchHistory = useCallback(async () => {
+    try {
+      const res = await fetch(`/api/history?tf=${tf}`);
+      const data = await res.json();
+      if (data.history && data.history.length > 0) {
+        setHistory(data.history);
+      }
+    } catch {}
+    setLoadingHist(false);
+  }, [tf]);
+
+  useEffect(() => {
+    setLoadingHist(true);
+    fetchHistory();
+    const t = setInterval(fetchHistory, 120000);
+    return () => clearInterval(t);
+  }, [fetchHistory]);
+
+  return { history, loadingHist, refreshHist: fetchHistory };
+}
+
 // ── Main App ──────────────────────────────────────────────────────────────────
 export default function JagoScalping() {
   const [activeTab, setActiveTab] = useState("signal");
@@ -737,6 +764,7 @@ export default function JagoScalping() {
   const { prices, loading:priceLoading, refresh } = useLivePrices();
   const { signals: liveSignals, loadingSig } = useLiveSignals(tf);
   const { news: liveNews, loadingNews } = useLiveNews();
+  const { history: liveHistory, loadingHist, refreshHist } = useLiveHistory(tf);
   const alertTimerRef = useRef(null);
 
   useEffect(() => {
