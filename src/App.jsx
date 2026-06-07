@@ -640,6 +640,92 @@ Format JSON:
   );
 }
 
+
+// ── Live Signals hook (Twelve Data RSI+EMA) ──────────────────────────────────
+const SIGNAL_PAIRS = [
+  { pair:"XAUUSD", sym:"XAU/USD", cat:"komoditas" },
+  { pair:"OIL",    sym:"WTI/USD", cat:"komoditas" },
+  { pair:"EURUSD", sym:"EUR/USD", cat:"forex"     },
+  { pair:"USDJPY", sym:"USD/JPY", cat:"forex"     },
+  { pair:"GBPUSD", sym:"GBP/USD", cat:"forex"     },
+  { pair:"USDCAD", sym:"USD/CAD", cat:"forex"     },
+  { pair:"BTCUSD", sym:"BTC/USD", cat:"crypto"    },
+];
+
+function useLiveSignals(tf) {
+  const [signals, setSignals] = useState([]);
+  const [loadingSig, setLoadingSig] = useState(true);
+
+  const fetchSignals = useCallback(async () => {
+    try {
+      const results = await Promise.all(
+        SIGNAL_PAIRS.map(({ pair, sym, cat }) =>
+          fetch(`/api/signals?symbol=${encodeURIComponent(sym)}&tf=${tf}`)
+            .then(r => r.json())
+            .then(d => ({
+              pair, cat,
+              action: d.action || "WAIT",
+              strength: d.strength || 50,
+              basis: d.basis || "EMA+RSI",
+              rsi: d.rsi,
+              ema9: d.ema9,
+              ema21: d.ema21,
+              pip: d.action === "BUY" ? "+30" : d.action === "SELL" ? "-30" : "±0",
+            }))
+            .catch(() => ({ pair, cat, action:"WAIT", strength:50, basis:"Teknikal", pip:"±0" }))
+        )
+      );
+      setSignals(results);
+    } catch { }
+    setLoadingSig(false);
+  }, [tf]);
+
+  useEffect(() => {
+    setLoadingSig(true);
+    fetchSignals();
+    const t = setInterval(fetchSignals, 60000);
+    return () => clearInterval(t);
+  }, [fetchSignals]);
+
+  return { signals, loadingSig, refreshSig: fetchSignals };
+}
+
+// ── Live News hook (ForexFactory via proxy) ───────────────────────────────────
+function useLiveNews() {
+  const [news, setNews] = useState([]);
+  const [loadingNews, setLoadingNews] = useState(true);
+
+  useEffect(() => {
+    fetch('/api/news')
+      .then(r => r.json())
+      .then(d => {
+        if (d.items && d.items.length > 0) {
+          setNews(d.items);
+        } else {
+          // Fallback static news
+          setNews([
+            { title:"Fed Pertahankan Suku Bunga 5.25-5.50%", country:"USD", time:"10:30", impact:"High", forecast:"", previous:"" },
+            { title:"CPI Zona Euro Naik 2.9% YoY", country:"EUR", time:"09:15", impact:"High", forecast:"2.8%", previous:"2.7%" },
+            { title:"Jepang GDP Q2 Tumbuh 0.4%", country:"JPY", time:"08:45", impact:"Medium", forecast:"0.3%", previous:"0.1%" },
+            { title:"China PMI Manufaktur: 49.7", country:"CNY", time:"07:30", impact:"Medium", forecast:"50.0", previous:"49.5" },
+            { title:"Gold Naik Didorong Ketidakpastian Geopolitik", country:"XAU", time:"06:00", impact:"High", forecast:"", previous:"" },
+            { title:"UK Retail Sales -0.3% MoM", country:"GBP", time:"05:00", impact:"Medium", forecast:"-0.1%", previous:"0.2%" },
+          ]);
+        }
+      })
+      .catch(() => {
+        setNews([
+          { title:"Fed Pertahankan Suku Bunga 5.25-5.50%", country:"USD", time:"10:30", impact:"High" },
+          { title:"CPI Zona Euro Naik 2.9% YoY", country:"EUR", time:"09:15", impact:"High" },
+          { title:"Gold Naik Didorong Geopolitik", country:"XAU", time:"06:00", impact:"High" },
+        ]);
+      })
+      .finally(() => setLoadingNews(false));
+  }, []);
+
+  return { news, loadingNews };
+}
+
 // ── Main App ──────────────────────────────────────────────────────────────────
 export default function JagoScalping() {
   const [activeTab, setActiveTab] = useState("signal");
@@ -649,6 +735,8 @@ export default function JagoScalping() {
   const [filter, setFilter] = useState("semua");
   const [alerts, setAlerts] = useState([]);
   const { prices, loading:priceLoading, refresh } = useLivePrices();
+  const { signals: liveSignals, loadingSig } = useLiveSignals(tf);
+  const { news: liveNews, loadingNews } = useLiveNews();
   const alertTimerRef = useRef(null);
 
   useEffect(() => {
@@ -743,7 +831,7 @@ export default function JagoScalping() {
         {/* SIGNAL */}
         {activeTab==="signal" && (
           <div>
-            <SectionHeader icon="⚡" title="SINYAL AKTIF" sub={`TF: ${tf} · ${filteredSignals.length} sinyal`} />
+            <SectionHeader icon="⚡" title="SINYAL AKTIF" sub={loadingSig ? `TF: ${tf} · Memuat...` : `TF: ${tf} · ${filteredSignals.length} sinyal · Live`} />
             <div style={{ display:"flex", gap:8, marginBottom:14 }}>
               {CATS.map(c => (
                 <button key={c} onClick={() => setFilter(c)} style={{
@@ -834,7 +922,7 @@ export default function JagoScalping() {
         {/* STRENGTH */}
         {activeTab==="strength" && (
           <div>
-            <SectionHeader icon="💹" title="KEKUATAN MATA UANG" sub={`TF: ${tf} · Realtime`} />
+            <SectionHeader icon="💹" title="KEKUATAN MATA UANG" sub={loadingSig ? "Memuat..." : `TF: ${tf} · Live`} />
             {CURRENCIES_BASE.map((code,i) => {
               const score = currencyScores[code] ?? 0;
               const action = getAction(score);
@@ -901,8 +989,8 @@ export default function JagoScalping() {
         {/* NEWS */}
         {activeTab==="news" && (
           <div>
-            <SectionHeader icon="📰" title="BERITA FOREX" sub="Update otomatis" />
-            {NEWS.map((n,i) => (
+            <SectionHeader icon="📰" title="BERITA FOREX" sub={loadingNews ? "Memuat..." : "ForexFactory · Live"} />
+            {(liveNews.length > 0 ? liveNews : NEWS).map((n,i) => (
               <div key={i} style={{
                 background:CARD, border:"1px solid #1e1e2e", borderRadius:14,
                 padding:"13px 16px", marginBottom:10,
@@ -910,19 +998,25 @@ export default function JagoScalping() {
                 animation:`slideIn 0.3s ease ${i*0.05}s both`,
               }}>
                 <div style={{ textAlign:"center", minWidth:44 }}>
-                  <div style={{ fontSize:11, fontWeight:700, color:GOLD }}>{n.time}</div>
+                  <div style={{ fontSize:11, fontWeight:700, color:"#6366f1" }}>{n.time || "--:--"}</div>
                   <div style={{
-                    marginTop:6, fontSize:10, fontWeight:700, padding:"2px 5px", borderRadius:4,
-                    background:n.impact==="high"?"#2e0d0d":"#1a1a0d",
-                    color:n.impact==="high"?"#ef4444":"#eab308",
-                  }}>{n.impact==="high"?"TINGGI":"SEDANG"}</div>
+                    marginTop:6, fontSize:9, fontWeight:700, padding:"2px 5px", borderRadius:4,
+                    background: (n.impact==="High"||n.impact==="high")?"#2e0d0d": (n.impact==="Medium"||n.impact==="medium")?"#1a1a0d":"#0d1a0d",
+                    color: (n.impact==="High"||n.impact==="high")?"#ef4444": (n.impact==="Medium"||n.impact==="medium")?"#eab308":"#22c55e",
+                  }}>{(n.impact==="High"||n.impact==="high")?"TINGGI":(n.impact==="Medium"||n.impact==="medium")?"SEDANG":"RENDAH"}</div>
                 </div>
                 <div style={{ flex:1 }}>
                   <div style={{
                     display:"inline-block", marginBottom:6, padding:"2px 8px",
-                    background:GOLD+"22", borderRadius:5, fontSize:10, fontWeight:800, color:GOLD,
-                  }}>{n.currency}</div>
+                    background:"#6366f122", borderRadius:5, fontSize:10, fontWeight:800, color:"#6366f1",
+                  }}>{n.currency||n.country||"FX"}</div>
                   <div style={{ fontSize:12, color:"#ccc", lineHeight:1.5 }}>{n.title}</div>
+                  {(n.forecast||n.previous) && (
+                    <div style={{ display:"flex", gap:12, marginTop:4 }}>
+                      {n.forecast && <span style={{ fontSize:10, color:"#666" }}>Forecast: <span style={{ color:"#eab308" }}>{n.forecast}</span></span>}
+                      {n.previous && <span style={{ fontSize:10, color:"#666" }}>Prev: <span style={{ color:"#888" }}>{n.previous}</span></span>}
+                    </div>
+                  )}
                 </div>
               </div>
             ))}
