@@ -482,11 +482,15 @@ Berikan HANYA JSON berikut tanpa teks lain, semua nilai harga harus berupa angka
         body: JSON.stringify({ messages:[{ role:"user", content:prompt }] }),
       });
       const data = await res.json();
+      if (data.error) throw new Error(data.error);
+      if (!data.content || !data.content.length) throw new Error("Response kosong dari Claude");
       const text = data.content.map(b => b.text||"").join("");
       const clean = text.replace(/```json|```/g,"").trim();
-      setResult(JSON.parse(clean));
-    } catch {
-      setError("Gagal memuat analisis. Pastikan ANTHROPIC_API_KEY sudah dikonfigurasi di Vercel Environment Variables.");
+      const match = clean.match(/\{[\s\S]*\}/);
+      if (!match) throw new Error("Format JSON tidak valid: " + clean.slice(0,100));
+      setResult(JSON.parse(match[0]));
+    } catch(e) {
+      setError("Gagal: " + e.message);
     }
     setLoading(false);
   };
